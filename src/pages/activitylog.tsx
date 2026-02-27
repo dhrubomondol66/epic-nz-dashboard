@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect, useMemo } from 'react';
 import Sidebar from "../components/sidebar/SIdebar";
 import Topbar from "../components/topbar/Topbar";
-import { Search, RefreshCw, Upload, Filter } from 'lucide-react';
+import { Search} from 'lucide-react';
 import { axiosInstance } from '../lib/axios';
 
 interface ActivityLog {
@@ -31,20 +32,33 @@ interface ActivityLog {
 export default function ActivityLog() {
     const [logs, setLogs] = useState<ActivityLog[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [filteredLogs, setFilteredLogs] = useState<ActivityLog[]>([]);
-    const [currentPage, setCurrentPage] = useState(1);
     const [totalEntries, setTotalEntries] = useState(0);
 
-    useEffect(() => {
-        fetchLogs();
-    }, []);
+    const filteredLogs = useMemo(() => {
+        if (searchQuery) {
+            return logs.filter(log => {
+                const actorName = log.actorId
+                    ? (typeof log.actorId === 'object' ? (log.actorId.fullName || '') : log.actorId)
+                    : '';
+                return (
+                    log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    actorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    log.entityType.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            });
+        } else {
+            return logs;
+        }
+    }, [searchQuery, logs]);
+
+  
 
     const fetchLogs = async () => {
         try {
             const response = await axiosInstance.get('/activity-logs');
             const data = response.data.data || [];
             setLogs(data);
-            setFilteredLogs(data);
             setTotalEntries(data.length);
         } catch (error: any) {
             console.error('Failed to fetch activity logs:', error);
@@ -56,28 +70,20 @@ export default function ActivityLog() {
                 url: error.config?.url
             });
             setLogs([]);
-            setFilteredLogs([]);
         }
     };
-
     useEffect(() => {
-        if (searchQuery) {
-            const filtered = logs.filter(log => {
-                const actorName = log.actorId
-                    ? (typeof log.actorId === 'object' ? (log.actorId.fullName || '') : log.actorId)
-                    : '';
-                return (
-                    log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    log.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    actorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    log.entityType.toLowerCase().includes(searchQuery.toLowerCase())
-                );
-            });
-            setFilteredLogs(filtered);
-        } else {
-            setFilteredLogs(logs);
-        }
-    }, [searchQuery, logs]);
+        let isMounted = true;
+        (async () => {
+            if (isMounted) {
+                await fetchLogs();
+            }
+        })();
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
 
     const getActionColor = (action: string) => {
         const act = action.toUpperCase();
@@ -112,20 +118,7 @@ export default function ActivityLog() {
                                 </p>
                             </div>
 
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={fetchLogs}
-                                    className="bg-[#181C1B] hover:bg-[#1f2422] text-white px-4 py-2.5 rounded-[12px] font-inter font-medium text-[14px] flex items-center gap-2 transition border border-[rgba(59,175,122,0.2)]"
-                                >
-                                    <RefreshCw size={18} />
-                                    Refresh
-                                </button>
 
-                                <button className="bg-[#3BB774] hover:bg-[#34a06d] text-white px-4 py-2.5 rounded-[12px] font-inter font-medium text-[14px] flex items-center gap-2 transition">
-                                    <Upload size={18} />
-                                    Bulk Import
-                                </button>
-                            </div>
                         </div>
 
                         {/* Search and Filter */}
@@ -141,10 +134,6 @@ export default function ActivityLog() {
                                 />
                             </div>
 
-                            <button className="bg-transparent border border-[rgba(59,175,122,0.2)] hover:bg-[#181C1B] text-white px-4 py-3 rounded-[12px] font-inter font-medium text-[14px] flex items-center gap-2 transition">
-                                <Filter size={18} />
-                                Filter
-                            </button>
                         </div>
 
                         {/* Table */}

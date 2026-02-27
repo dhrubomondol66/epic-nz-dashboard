@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo } from 'react';
 import Sidebar from "../components/sidebar/SIdebar";
 import Topbar from "../components/topbar/Topbar";

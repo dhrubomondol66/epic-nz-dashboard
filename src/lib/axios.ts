@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { type AxiosRequestConfig } from "axios";
 import config from "../config";
 
@@ -63,12 +64,12 @@ axiosInstance.interceptors.request.use(
         }
 
         // Check both cookies and localStorage
-        let token = Cookies.get('accessToken') || localStorage.getItem('accessToken');
+        const token = Cookies.get('accessToken') || localStorage.getItem('accessToken');
 
         // Ensure we don't send the string "undefined"
         if (token && token !== "undefined") {
             config.headers.Authorization = `Bearer ${token}`;
-            console.log("Axios Interceptor: Sending token", token.substring(0, 10) + "...");
+
         } else {
             console.log("Axios Interceptor: No valid token found.");
         }

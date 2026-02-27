@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import profile from "../../assets/images/profile.png";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
-import { useGetMyNotificationsQuery, useMarkAllNotificationsAsReadMutation } from "../../redux/features/notificationApi";
+import { useGetMyNotificationsQuery } from "../../redux/features/notificationApi";
 
 export default function Topbar() {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export default function Topbar() {
       refetchOnMountOrArgChange: true, // Refetch on mount or argument change
     }
   );
-  const [markAllRead] = useMarkAllNotificationsAsReadMutation();
+
 
   // Count only unread notifications
   const unreadNotifCount = (notifData?.notifications || []).filter((n: any) => !n.isRead).length;

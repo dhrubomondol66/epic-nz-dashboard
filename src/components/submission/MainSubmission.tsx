@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useRef } from 'react';
 import { axiosInstance } from '../../lib/axios';
 import { Calendar, CircleUser, Eye, Mail, X, MapPin, Globe, Phone, ChevronLeft, ChevronRight, Pause, Play, LayoutGrid, ChevronDown, Filter } from "lucide-react";
@@ -35,40 +36,48 @@ const MainSubmission = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-    const fetchSubmissions = async () => {
-        setIsLoading(true);
-        setError(null);
-
-        try {
-            const response = await axiosInstance.get(
-                `location/all?status=${filter === "all" ? "" : filter}&category=${category === "all" ? "" : category}`
-            );
-
-            const responseData = response.data.data;
-            const finalData = Array.isArray(responseData) ? responseData : responseData?.result;
-
-            if (finalData && Array.isArray(finalData)) {
-                setSubmissions(finalData);
-            } else {
-                setSubmissions([]);
-            }
-        } catch (err: any) {
-            setError(err.response?.data?.message || err.message || "Failed to fetch submissions");
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
     useEffect(() => {
+        const fetchSubmissions = async () => {
+            setIsLoading(true);
+            setError(null);
+
+            try {
+                const response = await axiosInstance.get(
+                    `location/all?status=${filter === "all" ? "" : filter}&category=${category === "all" ? "" : category}`
+                );
+
+                const responseData = response.data.data;
+                const finalData = Array.isArray(responseData) ? responseData : responseData?.result;
+
+                if (finalData && Array.isArray(finalData)) {
+                    setSubmissions(finalData);
+                } else {
+                    setSubmissions([]);
+                }
+            } catch (err: any) {
+                setError(err.response?.data?.message || err.message || "Failed to fetch submissions");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
         fetchSubmissions();
     }, [filter, category]);
 
     // Auto-play carousel
     useEffect(() => {
-        if (!showReviewModal || !isAutoPlaying || getImages().length <= 1) return;
+        if (!showReviewModal || !isAutoPlaying) return;
+
+        const images = !selectedSubmission
+            ? []
+            : Array.isArray(selectedSubmission.imageUrl)
+            ? selectedSubmission.imageUrl
+            : [selectedSubmission.imageUrl];
+        
+        if (images.length <= 1) return;
 
         const interval = setInterval(() => {
-            setCurrentImageIndex((prev) => (prev + 1) % getImages().length);
+            setCurrentImageIndex((prev) => (prev + 1) % images.length);
         }, 3000);
 
         return () => clearInterval(interval);
@@ -77,8 +86,16 @@ const MainSubmission = () => {
     const onApprove = async (id: string) => {
         try {
             await axiosInstance.patch(`location/approve/${id}`, { status: "APPROVED" });
-            fetchSubmissions();
             setShowReviewModal(false);
+            // Refetch submissions after approval
+            const response = await axiosInstance.get(
+                `location/all?status=${filter === "all" ? "" : filter}&category=${category === "all" ? "" : category}`
+            );
+            const responseData = response.data.data;
+            const finalData = Array.isArray(responseData) ? responseData : responseData?.result;
+            if (finalData && Array.isArray(finalData)) {
+                setSubmissions(finalData);
+            }
         } catch (err) {
             console.error("Failed to approve:", err);
             alert("Failed to approve submission");
@@ -88,8 +105,16 @@ const MainSubmission = () => {
     const onReject = async (id: string) => {
         try {
             await axiosInstance.patch(`location/reject/${id}`, { status: "REJECTED" });
-            fetchSubmissions();
             setShowReviewModal(false);
+            // Refetch submissions after rejection
+            const response = await axiosInstance.get(
+                `location/all?status=${filter === "all" ? "" : filter}&category=${category === "all" ? "" : category}`
+            );
+            const responseData = response.data.data;
+            const finalData = Array.isArray(responseData) ? responseData : responseData?.result;
+            if (finalData && Array.isArray(finalData)) {
+                setSubmissions(finalData);
+            }
         } catch (err) {
             console.error("Failed to reject:", err);
             alert("Failed to reject submission");

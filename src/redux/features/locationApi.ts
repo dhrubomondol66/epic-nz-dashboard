@@ -1,22 +1,5 @@
-// // redux/features/locationApi.ts
-// import { createApi } from "@reduxjs/toolkit/query/react";
-// import axiosBaseQuery from "../axiosBaseQuery";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
-// export const locationApi = createApi({
-//     reducerPath: "locationApi", // Unique reducer path
-//     baseQuery: axiosBaseQuery(), // Use the custom axiosBaseQuery
-//     endpoints: (builder) => ({
-//         getAllLocations: builder.query({
-//             query: (status = "all") => ({ // Returns an object with URL and params
-//                 url: `location/all?status=${status}`,
-//                 method: "GET", // HTTP method
-//             }),
-//         }),
-//     }),
-// });
-
-// export const { useGetAllLocationsQuery } = locationApi; // Export the hook for the component
-// src/redux/features/locationApi.ts
 import { baseApi } from "../baseApi";
 import type { Submission } from "../../@types/ISubmission.type";
 

@@ -3,20 +3,20 @@
 import { useState } from "react";
 import Sidebar from "../components/sidebar/SIdebar";
 import Topbar from "../components/topbar/Topbar";
-import { Bell, Clock, Search, CheckCheck, Trash2, Filter } from "lucide-react";
+import { Bell, Clock,  CheckCheck, Trash2 } from "lucide-react";
 import { useDeleteNotificationMutation, useGetMyNotificationsQuery, useMarkAllNotificationsAsReadMutation, useMarkNotificationAsReadMutation } from "../redux/features/notificationApi";
 
 export default function Notification() {
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [type, setType] = useState<string | undefined>();
-  const [isRead, setIsRead] = useState<boolean | undefined>();
+  const [search] = useState("");
+  const [type] = useState<string | undefined>();
+  const [isRead] = useState<boolean | undefined>();
 
   const [isMarkingRead, setIsMarkingRead] = useState(false);
   const [isDeletingNotif, setIsDeletingNotif] = useState(false);
 
   // Main list with filters and pagination
-  const { data: notificationsData, isLoading, refetch: refetchNotifications } = useGetMyNotificationsQuery({
+  const { data: notificationsData, isLoading } = useGetMyNotificationsQuery({
     page,
     limit: 10,
     isRead,

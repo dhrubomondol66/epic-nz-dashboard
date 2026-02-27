@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect, useMemo } from "react";
 import Sidebar from "../components/sidebar/SIdebar";
 import Topbar from "../components/topbar/Topbar";
 import { Search } from "lucide-react";
@@ -28,7 +29,6 @@ interface Subscription {
 
 export default function Subscription() {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-  const [filteredSubscriptions, setFilteredSubscriptions] = useState<Subscription[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPlan, setSelectedPlan] = useState("All Plans");
   const [stats, setStats] = useState({
@@ -37,24 +37,6 @@ export default function Subscription() {
     premium: 0,
     mrr: 0
   });
-
-  useEffect(() => {
-    fetchSubscriptions();
-  }, []);
-
-  const fetchSubscriptions = async () => {
-    try {
-      const response = await axiosInstance.get("subscription/all");
-      const data = response.data.data?.result || response.data.data || [];
-      setSubscriptions(data);
-      setFilteredSubscriptions(data);
-      calculateStats(data);
-    } catch (error: any) {
-      console.error("Failed to fetch subscriptions:", error);
-      setSubscriptions([]);
-      setFilteredSubscriptions([]);
-    }
-  };
 
   const calculateStats = (data: Subscription[]) => {
     const total = data.length;
@@ -65,6 +47,22 @@ export default function Subscription() {
   };
 
   useEffect(() => {
+    const fetchSubscriptions = async () => {
+      try {
+        const response = await axiosInstance.get("subscription/all");
+        const data = response.data.data?.result || response.data.data || [];
+        setSubscriptions(data);
+        calculateStats(data);
+      } catch (error: any) {
+        console.error("Failed to fetch subscriptions:", error);
+        setSubscriptions([]);
+      }
+    };
+
+    fetchSubscriptions();
+  }, []);
+
+  const filteredSubscriptions = useMemo(() => {
     let filtered = subscriptions;
     if (searchQuery) {
       filtered = filtered.filter(s => {
@@ -77,7 +75,7 @@ export default function Subscription() {
     if (selectedPlan !== "All Plans") {
       filtered = filtered.filter(s => s.plan_type === selectedPlan.toUpperCase());
     }
-    setFilteredSubscriptions(filtered);
+    return filtered;
   }, [searchQuery, selectedPlan, subscriptions]);
 
   return (

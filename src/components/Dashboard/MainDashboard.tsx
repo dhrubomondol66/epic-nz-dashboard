@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo } from 'react';
 import { CloudSun, MailCheck, MapPin, Users, Loader2 } from "lucide-react";
 import DashboardCard from "./DashboardCard";

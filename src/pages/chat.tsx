@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Chat.tsx
 import { useState, useEffect, useRef } from 'react';
 import Sidebar from "../components/sidebar/SIdebar";
@@ -76,7 +77,7 @@ export default function Chat() {
         unreadNotifsForUser.map((n: any) => markNotificationRead(n._id).unwrap())
       ).catch((err) => console.error("Failed to mark notifications as read:", err));
     }
-  }, [messages, selectedUser?._id]);
+  }, [messages, selectedUser?._id, chatNotifData?.notifications, markNotificationRead]);
 
   const handleSelectUser = async (user: User) => {
     // Optimistically hide badge immediately
