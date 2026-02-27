@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Backend Endpoint Tester</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .endpoint-test {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #ddd;
+        }
+        .endpoint-test.testing {
+            border-left-color: #ffa500;
+        }
+        .endpoint-test.success {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+        .endpoint-test.error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .endpoint-url {
+            font-family: monospace;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .status {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .status-code {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .status-200 { background: #10b981; color: white; }
+        .status-404 { background: #ef4444; color: white; }
+        .status-error { background: #f59e0b; color: white; }
+        button {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #059669;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .response-data {
+            margin-top: 10px;
+            padding: 10px;
+            background: #1f2937;
+            color: #10b981;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .email-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .email-input:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Backend Endpoint Tester</h1>
+        <p class="subtitle">Test which forgot password endpoint works on your backend</p>
+        
+        <label for="email">Test Email:</label>
+        <input type="email" id="email" class="email-input" placeholder="test@example.com" value="test@example.com">
+        
+        <div id="results"></div>
+        
+        <button id="testBtn" onclick="testAllEndpoints()">Test All Endpoints</button>
+    </div>
+
+    <script>
+        const BASE_URL = 'https://elflike-snoopy-ernie.ngrok-free.dev/api/v1';
+        
+        const endpoints = [
+            'auth/forgot-password',
+            'auth/forget-password',
+            'admin/forgot-password',
+            'admin/forget-password',
+            'otp/send',
+            'otp/request',
+            'otp/forgot-password',
+            'password/forgot',
+            'password/reset',
+            'user/forgot-password',
+            'user/forget-password',
+        ];
+
+        async function testEndpoint(endpoint) {
+            const email = document.getElementById('email').value;
+            const resultDiv = document.getElementById(`result-${endpoint.replace(/\//g, '-')}`);
+            
+            resultDiv.className = 'endpoint-test testing';
+            resultDiv.innerHTML = `
+                <div class="endpoint-url">POST /${endpoint}</div>
+                <div class="status">Testing...</div>
+            `;
+
+            try {
+                const response = await fetch(`${BASE_URL}/${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.text();
+                let parsedData;
+                try {
+                    parsedData = JSON.parse(data);
+                } catch (e) {
+                    parsedData = data;
+                }
+
+                if (response.ok) {
+                    resultDiv.className = 'endpoint-test success';
+                    resultDiv.innerHTML = `
+                        <div class="endpoint-url">✅ POST /${endpoint}</div>
+                        <div class="status">
+                            <span class="status-code status-200">${response.status} ${response.statusText}</span>
+                            <strong style="color: #10b981; margin-left: 10px;">THIS ENDPOINT WORKS!</strong>
+                        </div>
+                        <div class="response-data">${JSON.stringify(parsedData, null, 2)}</div>
+                    `;
+                } else {
+                    resultDiv.className = 'endpoint-test error';
+                    resultDiv.innerHTML = `
+                        <div class="endpoint-url">❌ POST /${endpoint}</div>
+                        <div class="status">
+                            <span class="status-code status-404">${response.status} ${response.statusText}</span>
+                        </div>
+                        <div class="response-data">${typeof parsedData === 'string' ? parsedData.substring(0, 200) : JSON.stringify(parsedData, null, 2)}</div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.className = 'endpoint-test error';
+                resultDiv.innerHTML = `
+                    <div class="endpoint-url">❌ POST /${endpoint}</div>
+                    <div class="status">
+                        <span class="status-code status-error">ERROR</span>
+                    </div>
+                    <div class="response-data">${error.message}</div>
+                `;
+            }
+        }
+
+        async function testAllEndpoints() {
+            const email = document.getElementById('email').value;
+            if (!email) {
+                alert('Please enter a test email address');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('results');
+            const testBtn = document.getElementById('testBtn');
+            
+            testBtn.disabled = true;
+            testBtn.textContent = 'Testing...';
+            
+            resultsDiv.innerHTML = endpoints.map(endpoint => `
+                <div id="result-${endpoint.replace(/\//g, '-')}" class="endpoint-test">
+                    <div class="endpoint-url">POST /${endpoint}</div>
+                    <div class="status">Waiting...</div>
+                </div>
+            `).join('');
+
+            for (const endpoint of endpoints) {
+                await testEndpoint(endpoint);
+                await new Promise(resolve => setTimeout(resolve, 500)); // Small delay between requests
+            }
+
+            testBtn.disabled = false;
+            testBtn.textContent = 'Test Again';
+        }
+    </script>
+</body>
+</html>
