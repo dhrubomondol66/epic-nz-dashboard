@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
@@ -11,7 +12,7 @@ export default defineConfig({
     strictPort: false,
     proxy: {
       '/api/v1/': {
-        target: process.env.VITE_API_TARGET || 'http://142.248.180.28:5000/', // Default to ngrok if env var is not found
+target: import.meta.env.VITE_API_TARGET || 'http://localhost:5000', // Default to ngrok if env var is not found
         changeOrigin: true,
         secure: false,
         ws: true,
