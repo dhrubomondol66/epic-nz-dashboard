@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
 import { useNavigate } from "react-router-dom";
 import { useLoginMutation } from "../../redux/features/auth";
@@ -7,12 +7,18 @@ import { useLoginMutation } from "../../redux/features/auth";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState(() => localStorage.getItem("email") || "");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [login] = useLoginMutation();
+
+  // ✅ FIX 1: Load saved email after mount to avoid getSelection crash
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("email");
+    if (savedEmail) setEmail(savedEmail);
+  }, []);
 
   const saveTokens = (accessToken?: string, refreshToken?: string, userEmail?: string) => {
     if (accessToken && accessToken !== "undefined") {
@@ -33,11 +39,17 @@ const AdminLogin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // ✅ FIX 2: Guard against empty fields before sending request (prevents 500)
+    if (!email.trim() || !password.trim()) {
+      setError("Please enter both email and password.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
     try {
-      const response = (await login({ email, password }).unwrap()) as any;
+      const response = (await login({ email: email.trim(), password }).unwrap()) as any;
 
       // Extract token from either response.data or response directly
       let accessToken = response?.data?.accessToken || response?.accessToken || response?.token;
@@ -54,12 +66,16 @@ const AdminLogin = () => {
         return;
       }
 
-      saveTokens(accessToken, refreshToken, email);
+      saveTokens(accessToken, refreshToken, email.trim());
 
       // Redirect user after login
       navigate("/dashboard", { replace: true });
     } catch (error: any) {
-      setError(error?.data?.message || "Invalid login credentials. Please try again.");
+      const message =
+        error?.data?.message ||
+        error?.message ||
+        "Invalid login credentials. Please try again.";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -85,7 +101,7 @@ const AdminLogin = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3.5 bg-gray-50 border-0 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition"
-              placeholder="luisdomench@Gmail.Com"
+              placeholder="admin@example.com"
               required
             />
           </div>

@@ -6,7 +6,7 @@ import { axiosInstance } from "../lib/axios";
 const axiosBaseQuery =
     (): BaseQueryFn<{
         url: string;
-        method?: AxiosRequestConfig["method"];
+        method?: AxiosRequestConfig["method"]; // ✅ Type এ শুধু type থাকবে, value না
         data?: AxiosRequestConfig["data"];
         params?: AxiosRequestConfig["params"];
         headers?: AxiosRequestConfig["headers"];
@@ -15,7 +15,7 @@ const axiosBaseQuery =
             try {
                 const result = await axiosInstance({
                     url: url,
-                    method,
+                    method: method || "GET", // ✅ Default value এখানে, runtime এ
                     data,
                     params,
                     headers,

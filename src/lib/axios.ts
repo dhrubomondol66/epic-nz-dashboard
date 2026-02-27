@@ -4,7 +4,7 @@ import config from "../config";
 
 export const axiosInstance = axios.create({
     baseURL: config.baseUrl,
-    withCredentials: false,
+    withCredentials: true,
     headers: {
         'ngrok-skip-browser-warning': 'true',
     }
