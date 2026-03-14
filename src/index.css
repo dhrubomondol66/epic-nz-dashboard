@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --font-inter: "Inter", sans-serif;
+}
+
+:root {
+  --bg-color: #0a0e0d;
+}
+
+body {
+  background: var(--bg-color);
+  font-family: var(--font-inter);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.divider{
+  height: 1px;
+}
